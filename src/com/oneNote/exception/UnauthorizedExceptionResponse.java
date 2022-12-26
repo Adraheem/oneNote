@@ -1,0 +1,14 @@
+package com.oneNote.exception;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.springframework.http.HttpStatus;
+
+import java.time.ZonedDateTime;
+
+@Data @AllArgsConstructor
+public class UnauthorizedExceptionResponse {
+    private String message;
+    private HttpStatus status;
+    private ZonedDateTime timestamp;
+}
