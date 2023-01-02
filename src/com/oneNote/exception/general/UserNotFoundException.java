@@ -1,5 +1,6 @@
-package com.oneNote.exception;
+package com.oneNote.exception.general;
 
+import com.oneNote.exception.ApiRequestException;
 import org.springframework.http.HttpStatus;
 
 public class UserNotFoundException extends ApiRequestException {
