@@ -73,4 +73,9 @@ public class UserServiceImpl implements UserService {
         LoginResponseDTO response = new LoginResponseDTO("Bearer " + token);
         return response;
     }
+
+    @Override
+    public UserEntity getUser() {
+        return userRepository.findById(1L).get();
+    }
 }
