@@ -7,14 +7,19 @@ import com.oneNote.data.repositories.NoteRepository;
 import com.oneNote.dto.requests.CreateNoteRequestDTO;
 import com.oneNote.dto.requests.UpdateNoteRequestDTO;
 import com.oneNote.dto.responses.NoteDTO;
+import com.oneNote.dto.responses.Paginated;
 import com.oneNote.exception.general.NoteNotFoundException;
 import com.oneNote.services.NoteService;
 import com.oneNote.services.ReminderService;
 import com.oneNote.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NoteServiceImpl implements NoteService {
@@ -36,7 +41,7 @@ public class NoteServiceImpl implements NoteService {
         newNote.setTitle(createNoteRequestDTO.getTitle());
         newNote.setBody(createNoteRequestDTO.getBody());
 
-        if(createNoteRequestDTO.getReminder() != null){
+        if (createNoteRequestDTO.getReminder() != null) {
             ReminderEntity reminder = new ReminderEntity();
             reminder.setReminderDate(createNoteRequestDTO.getReminder());
 
@@ -44,7 +49,7 @@ public class NoteServiceImpl implements NoteService {
 
             newNote.setReminder(savedReminder);
         }
-        UserEntity user = userService.getUser();
+        UserEntity user = userService.getAuthenticatedUser();
         newNote.setUser(user);
 
         NoteEntity savedNote = noteRepository.save(newNote);
@@ -65,12 +70,44 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public NoteDTO updateNote(UpdateNoteRequestDTO updateNoteRequestDTO) {
-        return null;
+        UserEntity user = userService.getAuthenticatedUser();
+        Optional<NoteEntity> getNote = noteRepository.findByIdAndUser(updateNoteRequestDTO.getId(), user);
+        if (getNote.isPresent()) {
+            NoteEntity note = getNote.get();
+            note.setTitle(updateNoteRequestDTO.getTitle());
+            note.setBody(updateNoteRequestDTO.getBody());
+
+            if (updateNoteRequestDTO.getReminder() != null) {
+                if (note.getReminder() != null) {
+                    ReminderEntity noteReminder = note.getReminder();
+                    noteReminder.setReminderDate(updateNoteRequestDTO.getReminder().getReminderDate());
+
+                    reminderService.updateReminder(noteReminder);
+                } else {
+                    ReminderEntity reminder = new ReminderEntity();
+                    reminder.setReminderDate(updateNoteRequestDTO.getReminder().getReminderDate());
+
+                    reminder = reminderService.createReminder(reminder);
+                    note.setReminder(reminder);
+                }
+            } else {
+                if (note.getReminder() != null) {
+                    reminderService.deleteReminder(note.getReminder().getId());
+                }
+                note.setReminder(null);
+            }
+
+            NoteEntity updatedNote = noteRepository.save(note);
+            return generateNoteDtoFromNoteEntity(updatedNote);
+        }
+        throw new NoteNotFoundException();
     }
 
     @Override
     public void deleteNote(Long id) {
-        if (noteRepository.findById(id).isPresent()) {
+        UserEntity user = userService.getAuthenticatedUser();
+        Optional<NoteEntity> note = noteRepository.findByIdAndUser(id, user);
+        if (note.isPresent()) {
             noteRepository.deleteById(id);
         } else {
             throw new NoteNotFoundException();
@@ -78,12 +115,28 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public List<NoteDTO> getAllNotes() {
-        return null;
+    public Paginated<NoteDTO> getAllNotes() {
+        UserEntity user = userService.getAuthenticatedUser();
+
+        Page<NoteEntity> notes = noteRepository.findAllByUser(user, PageRequest.of(0, 20));
+
+        Paginated<NoteDTO> result = new Paginated<>(notes);
+        result.setContent(notes.getContent()
+                .stream()
+                .map(NoteServiceImpl::generateNoteDtoFromNoteEntity)
+                .collect(Collectors.toList())
+        );
+        return result;
     }
 
     @Override
     public NoteDTO getNote(Long id) {
-        return null;
+        UserEntity user = userService.getAuthenticatedUser();
+        Optional<NoteEntity> note = noteRepository.findByIdAndUser(id, user);
+        if (note.isPresent()) {
+            return generateNoteDtoFromNoteEntity(note.get());
+        } else {
+            throw new NoteNotFoundException();
+        }
     }
 }

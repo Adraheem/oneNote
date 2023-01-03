@@ -25,4 +25,9 @@ public class ReminderServiceImpl implements ReminderService {
     public ReminderEntity updateReminder(ReminderEntity reminder) {
         return reminderRepository.save(reminder);
     }
+
+    @Override
+    public void deleteReminder(Long id) {
+        reminderRepository.deleteById(id);
+    }
 }

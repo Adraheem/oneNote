@@ -8,6 +8,7 @@ import com.oneNote.dto.requests.SignUpRequestDTO;
 import com.oneNote.dto.responses.LoginResponseDTO;
 import com.oneNote.exception.general.BadRequestException;
 import com.oneNote.exception.general.UnauthorizedRequestException;
+import com.oneNote.security.AuthenticatedUser;
 import com.oneNote.security.JwtGenerator;
 import com.oneNote.services.RoleService;
 import com.oneNote.services.UserService;
@@ -75,7 +76,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserEntity getUser() {
-        return userRepository.findById(1L).get();
+    public UserEntity getAuthenticatedUser() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+            return userRepository.findById(user.getId()).get();
+        } catch (Exception e) {
+            throw new UnauthorizedRequestException(e.getMessage());
+        }
     }
 }

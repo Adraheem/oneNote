@@ -1,6 +1,7 @@
 package com.oneNote.exception.general;
 
 import com.oneNote.exception.ApiRequestException;
+import org.springframework.http.HttpStatus;
 
 public class NoteNotFoundException extends ApiRequestException {
     public NoteNotFoundException() {
@@ -8,6 +9,6 @@ public class NoteNotFoundException extends ApiRequestException {
     }
 
     public NoteNotFoundException(String message) {
-        super(message);
+        super(message, HttpStatus.NOT_FOUND);
     }
 }

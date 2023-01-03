@@ -8,4 +8,6 @@ public interface ReminderService {
 
     ReminderEntity updateReminder(ReminderEntity reminder);
 
+    void deleteReminder(Long id);
+
 }
