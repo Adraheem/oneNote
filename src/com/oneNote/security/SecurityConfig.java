@@ -20,6 +20,15 @@ public class SecurityConfig {
     private JwtAuthEntryPoint authEntryPoint;
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    private static final String[] AUTH_WHITELIST = {
+            "/authenticate",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/webjars/**"
+    };
+
     @Autowired
     public SecurityConfig(JwtAuthEntryPoint authEntryPoint, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.authEntryPoint = authEntryPoint;
@@ -38,6 +47,7 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers(AUTH_WHITELIST).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();

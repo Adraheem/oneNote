@@ -7,6 +7,7 @@ import com.oneNote.dto.requests.UpdateNoteRequestDTO;
 import com.oneNote.dto.responses.NoteDTO;
 import com.oneNote.dto.responses.Paginated;
 import com.oneNote.services.NoteService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api/v1/note")
+@Api(value = "Note Resources")
 public class NoteController {
 
     private NoteService noteService;
